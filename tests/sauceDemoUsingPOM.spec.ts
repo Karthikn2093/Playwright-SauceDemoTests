@@ -7,24 +7,32 @@ import { CheckoutComplete } from '../pages/CheckoutCompletePage';
 import {test} from '@playwright/test'
 import { ProductDetailPage } from '../pages/ProductDetailPage';
 
+
 test.describe('Sauce Demo E2E Tests',() => {
 
+    let loginPage, inventoryPage, productDetailPage, cartPage, checkoutInfoPage, 
+        checkoutOverviewPage, checkoutCompletePage;
+
     test.beforeEach('Open URL', async({page}) => {
-    const loginPage = new LoginPage(page);
+    loginPage = new LoginPage(page);
+    inventoryPage = new InventoryPage(page);
+    productDetailPage = new ProductDetailPage(page);
+    cartPage = new CartPage(page);
+    checkoutInfoPage = new CheckoutInformation(page);
+    checkoutOverviewPage = new CheckoutOverviewPage(page);
+    checkoutCompletePage = new CheckoutComplete(page);
     await loginPage.goto();
 });
 
+test('should display error message for invalid login credentials', async ({ page }) => {
+    await loginPage.loginWithInvalidCredentials();
+    await loginPage.expectErrorMessage('Username and password do not match');
+    await loginPage.expectToBeOnLoginPage();
+  });
+
+
 test('should complete full checkout flow successfully', async ({ page }) => {
 
-    const loginPage = new LoginPage(page);
-    const inventoryPage = new InventoryPage(page);
-    const productDetailPage = new ProductDetailPage(page);
-    const cartPage = new CartPage(page);
-    const checkoutInfoPage = new CheckoutInformation(page);
-    const checkoutOverviewPage = new CheckoutOverviewPage(page);
-    const checkoutCompletePage = new CheckoutComplete(page);
-
-    await loginPage.goto();
     await loginPage.loginWithValidCredentials();
     await inventoryPage.expectToBeOnInventoryPage();
 
@@ -43,10 +51,7 @@ test('should complete full checkout flow successfully', async ({ page }) => {
 })
 
 test('should display correct product price on detail page', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    const inventoryPage = new InventoryPage(page);
-    const productDetailPage = new ProductDetailPage(page);
-
+    
     await loginPage.loginWithValidCredentials();
     await inventoryPage.expectToBeOnInventoryPage();
     
@@ -55,19 +60,7 @@ test('should display correct product price on detail page', async ({ page }) => 
     await productDetailPage.expectPrice('$29.99');
   });
 
-  test('should display error message for invalid login credentials', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-
-    await loginPage.loginToApp('invalid_user', 'wrong_password');
-    await loginPage.expectErrorMessage('Username and password do not match');
-    await loginPage.expectToBeOnLoginPage();
-  });
-
   test('should add multiple products to cart and verify cart count', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    const inventoryPage = new InventoryPage(page);
-    const cartPage = new CartPage(page);
-
     await loginPage.loginWithValidCredentials();
     await inventoryPage.expectToBeOnInventoryPage();
     

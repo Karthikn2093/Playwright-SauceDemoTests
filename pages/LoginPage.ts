@@ -1,4 +1,5 @@
 import { Page, Locator, expect } from '@playwright/test';
+import { EnvironmentManager } from '../config/environmentManager';
 
 export class LoginPage {
     readonly page: Page;
@@ -28,15 +29,25 @@ export class LoginPage {
         await this.loginButton.click();
     }
     async loginWithValidCredentials() {
-        await this.loginToApp('standard_user', 'secret_sauce');
+        const credentials = EnvironmentManager.getValidCredentials();
+        console.log(`Logging in with valid credentials for ${EnvironmentManager.getEnvironment().name} environment`);
+        await this.loginToApp(credentials.username, credentials.password);
     }
-    async expectErrorMessage(message) {
-        await expect(this.errorMessage).toBeVisible();
+
+    async loginWithInvalidCredentials() {
+        const credentials = EnvironmentManager.getInvalidCredentials();
+        console.log(`Logging in with invalid credentials for ${EnvironmentManager.getEnvironment().name} environment`);
+        await this.loginToApp(credentials.username, credentials.password);
+    }
+    async expectErrorMessage(message: string) {
+        const timeout = EnvironmentManager.getTimeouts().default;
+        await expect(this.errorMessage).toBeVisible({ timeout });
         await expect(this.errorMessage).toContainText(message);
     }
 
     async expectToBeOnLoginPage() {
-        await expect(this.page).toHaveURL(/.*saucedemo.com\/?$/);
+        const baseUrl = EnvironmentManager.getBaseUrl();
+        await expect(this.page).toHaveURL(new RegExp(`${baseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/?$`));
     }
 
 }
